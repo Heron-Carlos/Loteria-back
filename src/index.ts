@@ -10,7 +10,16 @@ dotenv.config();
 const createApp = (): express.Application => {
   const app = express();
 
-  app.use(cors());
+  // Configurar CORS para aceitar requisições de qualquer origem
+  app.use(
+    cors({
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: false,
+    })
+  );
+  
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
