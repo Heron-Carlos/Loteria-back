@@ -1,5 +1,6 @@
 # Loteria Backend
 
+
 Backend do sistema de loteria desenvolvido em Node.js com TypeScript, seguindo Clean Architecture e princípios SOLID.
 
 ## Stack Tecnológica
