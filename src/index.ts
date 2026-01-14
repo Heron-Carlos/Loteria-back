@@ -13,12 +13,22 @@ const createApp = (): express.Application => {
   // Configurar CORS para aceitar requisições de qualquer origem
   app.use(
     cors({
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      origin: true, // Aceitar qualquer origem
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
       credentials: false,
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
     })
   );
+  
+  // Handlers para OPTIONS (preflight)
+  app.options('*', (_req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.sendStatus(204);
+  });
   
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
