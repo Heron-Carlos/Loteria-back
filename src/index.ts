@@ -22,12 +22,17 @@ const createApp = (): express.Application => {
     })
   );
   
-  // Handlers para OPTIONS (preflight)
+  // Handlers para OPTIONS (preflight) - DEVE vir ANTES das rotas
   app.options('*', (_req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
     res.sendStatus(204);
+  });
+  
+  // Rota de health check
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok', message: 'Backend is running' });
   });
   
   app.use(express.json());
