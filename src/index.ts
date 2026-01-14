@@ -10,10 +10,18 @@ dotenv.config();
 const createApp = (): express.Application => {
   const app = express();
 
+  // Handler de OPTIONS PRIMEIRO - antes de qualquer middleware
+  app.options('*', (_req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.sendStatus(204);
+  });
+
   // Configurar CORS para aceitar requisições de qualquer origem
   app.use(
     cors({
-      origin: true, // Aceitar qualquer origem
+      origin: '*',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
       credentials: false,
@@ -22,21 +30,13 @@ const createApp = (): express.Application => {
     })
   );
   
-  // Handlers para OPTIONS (preflight) - DEVE vir ANTES das rotas
-  app.options('*', (_req, res) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-    res.sendStatus(204);
-  });
-  
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
   // Rota de health check
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', message: 'Backend is running' });
   });
-  
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
 
   app.use('/api/auth', authRouter);
   app.use('/api/bets', betsRouter);
