@@ -1,11 +1,12 @@
 import { Router } from 'express';
+import type { Router as ExpressRouter } from 'express';
 import { AuthController } from '../controllers/AuthController';
 import { UserRepository } from '../repositories/UserRepository';
 import { AuthenticateUseCase } from '../../application/use-cases/auth/Authenticate.use-case';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUser.use-case';
 import { GetAllPartnersUseCase } from '../../application/use-cases/auth/GetAllPartners.use-case';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 const userRepository = new UserRepository();
 const authenticateUseCase = new AuthenticateUseCase(userRepository);

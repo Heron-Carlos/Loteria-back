@@ -31,5 +31,11 @@ const startServer = (): void => {
   });
 };
 
-startServer();
+// Exportar o app para a Vercel
+export const app = createApp();
+
+// Iniciar o servidor apenas se não estiver em ambiente serverless
+if (process.env.VERCEL !== '1') {
+  startServer();
+}
 

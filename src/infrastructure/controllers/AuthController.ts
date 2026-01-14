@@ -68,7 +68,7 @@ export class AuthController {
     }
   };
 
-  getAllPartners = async (req: Request, res: Response): Promise<void> => {
+  getAllPartners = async (_req: Request, res: Response): Promise<void> => {
     try {
       const partners = await this.getAllPartnersUseCase.execute();
       

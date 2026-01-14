@@ -109,7 +109,7 @@ export class BetRepository implements IBetRepository {
     `;
     const result = await connection.query(query, [id]);
 
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   private mapRowToBet(row: any): Bet {

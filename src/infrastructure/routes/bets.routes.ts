@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Router as ExpressRouter } from 'express';
 import { BetsController } from '../controllers/BetsController';
 import { BetRepository } from '../repositories/BetRepository';
 import { CreateBetUseCase } from '../../application/use-cases/bets/CreateBet.use-case';
@@ -7,7 +8,7 @@ import { UpdateBetPaidStatusUseCase } from '../../application/use-cases/bets/Upd
 import { DeleteBetUseCase } from '../../application/use-cases/bets/DeleteBet.use-case';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 const betRepository = new BetRepository();
 const createBetUseCase = new CreateBetUseCase(betRepository);
