@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Router as ExpressRouter } from 'express';
 import { BetsController } from '../controllers/BetsController';
 import { BetRepository } from '../repositories/BetRepository';
+import { PartnerSiglaRepository } from '../repositories/PartnerSiglaRepository';
 import { CreateBetUseCase } from '../../application/use-cases/bets/CreateBet.use-case';
 import { GetBetsByPartnerIdUseCase } from '../../application/use-cases/bets/GetBetsByPartnerId.use-case';
 import { UpdateBetPaidStatusUseCase } from '../../application/use-cases/bets/UpdateBetPaidStatus.use-case';
@@ -11,6 +12,8 @@ import { authenticate, authorize } from '../middleware/auth.middleware';
 const router: ExpressRouter = Router();
 
 const betRepository = new BetRepository();
+const partnerSiglaRepository = new PartnerSiglaRepository();
+
 const createBetUseCase = new CreateBetUseCase(betRepository);
 const getBetsByPartnerIdUseCase = new GetBetsByPartnerIdUseCase(betRepository);
 const updateBetPaidStatusUseCase = new UpdateBetPaidStatusUseCase(betRepository);
@@ -20,7 +23,9 @@ const betsController = new BetsController(
   createBetUseCase,
   getBetsByPartnerIdUseCase,
   updateBetPaidStatusUseCase,
-  deleteBetUseCase
+  deleteBetUseCase,
+  partnerSiglaRepository,
+  betRepository
 );
 
 router.post('/', betsController.createBet);

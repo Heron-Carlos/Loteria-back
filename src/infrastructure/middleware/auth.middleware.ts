@@ -7,8 +7,6 @@ export interface AuthenticatedRequest extends Request {
     username: string;
     role: string;
     partnerId?: string;
-    megaSigla?: string;
-    quinaSigla?: string;
   };
 }
 

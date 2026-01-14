@@ -15,8 +15,7 @@ export type LoginResponse = {
 export type RegisterRequest = {
   username: string;
   password: string;
-  role: 'Partner' | 'Admin';
-  partnerId: string;
+  role?: 'Partner' | 'Admin';
   megaSigla: string;
   quinaSigla: string;
 };

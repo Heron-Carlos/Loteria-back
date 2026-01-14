@@ -1,3 +1,5 @@
+import { Bet } from '../../domain/entities/Bet.entity';
+
 export type CreateBetRequest = {
   playerName: string;
   gameType: 'Mega' | 'Quina';
@@ -19,5 +21,16 @@ export type DeleteBetRequest = {
 export type GetBetsByPartnerIdRequest = {
   partnerId: string;
   gameType?: string;
+  search?: string;
+  isPaid?: boolean;
+  page?: number;
+  limit?: number;
 };
 
+export type PaginatedBetsResponse = {
+  bets: Bet[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};

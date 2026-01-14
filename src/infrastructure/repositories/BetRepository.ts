@@ -1,4 +1,4 @@
-import { IBetRepository } from '../../domain/interfaces/IBetRepository.interface';
+import { IBetRepository, FindByPartnerIdParams, PaginatedBetsResult } from '../../domain/interfaces/IBetRepository.interface';
 import { Bet } from '../../domain/entities/Bet.entity';
 import { getDatabaseConnection } from '../database/connection';
 
@@ -61,11 +61,77 @@ export class BetRepository implements IBetRepository {
       params.push(gameType);
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += ' ORDER BY player_name ASC, created_at DESC';
 
     const result = await connection.query(query, params);
 
     return result.rows.map((row) => this.mapRowToBet(row));
+  }
+
+  async findByPartnerIdPaginated(
+    params: FindByPartnerIdParams
+  ): Promise<PaginatedBetsResult> {
+    const connection = getDatabaseConnection();
+    
+    const {
+      partnerId,
+      gameType,
+      search,
+      isPaid,
+      page = 1,
+      limit = 50,
+    } = params;
+
+    const offset = (page - 1) * limit;
+    const queryParams: any[] = [partnerId];
+    let paramIndex = 2;
+
+    let whereClause = 'WHERE partner_id = $1 AND deleted_at IS NULL';
+
+    if (gameType) {
+      whereClause += ` AND game_type = $${paramIndex}`;
+      queryParams.push(gameType);
+      paramIndex++;
+    }
+
+    if (search && search.trim()) {
+      whereClause += ` AND LOWER(player_name) LIKE LOWER($${paramIndex})`;
+      queryParams.push(`%${search.trim()}%`);
+      paramIndex++;
+    }
+
+    if (isPaid !== undefined) {
+      whereClause += ` AND is_paid = $${paramIndex}`;
+      queryParams.push(isPaid);
+      paramIndex++;
+    }
+
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM bets
+      ${whereClause}
+    `;
+
+    const countResult = await connection.query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].total, 10);
+
+    const dataQuery = `
+      SELECT id, player_name, game_type, selected_numbers, is_paid, partner_id, deleted_at
+      FROM bets
+      ${whereClause}
+      ORDER BY player_name ASC, created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+
+    queryParams.push(limit, offset);
+    const dataResult = await connection.query(dataQuery, queryParams);
+
+    const bets = dataResult.rows.map((row) => this.mapRowToBet(row));
+
+    return {
+      bets,
+      total,
+    };
   }
 
   async update(id: string, updates: Partial<Bet>): Promise<Bet | null> {

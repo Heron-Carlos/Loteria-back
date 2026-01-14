@@ -7,8 +7,8 @@ export class UserRepository implements IUserRepository {
     const connection = getDatabaseConnection();
 
     const query = `
-      INSERT INTO users (id, username, password_hash, role, partner_id, mega_sigla, quina_sigla)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO users (id, username, password_hash, role, partner_id, created_at, updated_at, deleted_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `;
 
     await connection.query(query, [
@@ -17,8 +17,9 @@ export class UserRepository implements IUserRepository {
       user.passwordHash,
       user.role,
       user.partnerId,
-      user.megaSigla,
-      user.quinaSigla,
+      user.createdAt || new Date(),
+      user.updatedAt || new Date(),
+      user.deletedAt || null,
     ]);
 
     return user;
@@ -28,9 +29,9 @@ export class UserRepository implements IUserRepository {
     const connection = getDatabaseConnection();
 
     const query = `
-      SELECT id, username, password_hash, role, partner_id, mega_sigla, quina_sigla
+      SELECT id, username, password_hash, role, partner_id, created_at, updated_at, deleted_at
       FROM users
-      WHERE username = $1
+      WHERE username = $1 AND deleted_at IS NULL
     `;
 
     const result = await connection.query(query, [username]);
@@ -47,9 +48,9 @@ export class UserRepository implements IUserRepository {
     const connection = getDatabaseConnection();
 
     const query = `
-      SELECT id, username, password_hash, role, partner_id, mega_sigla, quina_sigla
+      SELECT id, username, password_hash, role, partner_id, created_at, updated_at, deleted_at
       FROM users
-      WHERE id = $1
+      WHERE id = $1 AND deleted_at IS NULL
     `;
 
     const result = await connection.query(query, [id]);
@@ -66,9 +67,10 @@ export class UserRepository implements IUserRepository {
     const connection = getDatabaseConnection();
 
     const query = `
-      SELECT id, username, password_hash, role, partner_id, mega_sigla, quina_sigla
+      SELECT id, username, password_hash, role, partner_id, created_at, updated_at, deleted_at
       FROM users
-      WHERE role = 'Partner'
+      WHERE role = 'Partner' AND deleted_at IS NULL
+      ORDER BY username
     `;
 
     const result = await connection.query(query);
@@ -82,8 +84,9 @@ export class UserRepository implements IUserRepository {
       passwordHash: row.password_hash || '',
       role: row.role || 'Partner',
       partnerId: row.partner_id || null,
-      megaSigla: row.mega_sigla || '',
-      quinaSigla: row.quina_sigla || '',
+      createdAt: row.created_at ? new Date(row.created_at) : undefined,
+      updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
+      deletedAt: row.deleted_at ? new Date(row.deleted_at) : null,
     };
   }
 }

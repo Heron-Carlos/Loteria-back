@@ -3,6 +3,8 @@ import { CreateBetUseCase } from '../../application/use-cases/bets/CreateBet.use
 import { GetBetsByPartnerIdUseCase } from '../../application/use-cases/bets/GetBetsByPartnerId.use-case';
 import { UpdateBetPaidStatusUseCase } from '../../application/use-cases/bets/UpdateBetPaidStatus.use-case';
 import { DeleteBetUseCase } from '../../application/use-cases/bets/DeleteBet.use-case';
+import { IPartnerSiglaRepository } from '../../domain/interfaces/IPartnerSiglaRepository.interface';
+import { IBetRepository } from '../../domain/interfaces/IBetRepository.interface';
 import { createBetSchema } from '../../application/validators/bet.validator';
 import { generateExcel } from '../../application/services/excel-export.service';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
@@ -12,7 +14,9 @@ export class BetsController {
     private readonly createBetUseCase: CreateBetUseCase,
     private readonly getBetsByPartnerIdUseCase: GetBetsByPartnerIdUseCase,
     private readonly updateBetPaidStatusUseCase: UpdateBetPaidStatusUseCase,
-    private readonly deleteBetUseCase: DeleteBetUseCase
+    private readonly deleteBetUseCase: DeleteBetUseCase,
+    private readonly partnerSiglaRepository: IPartnerSiglaRepository,
+    private readonly betRepository: IBetRepository
   ) {}
 
   createBet = async (req: Request, res: Response): Promise<void> => {
@@ -48,13 +52,21 @@ export class BetsController {
     }
 
     const gameType = req.query.gameType as string | undefined;
+    const search = req.query.search as string | undefined;
+    const isPaid = req.query.isPaid !== undefined ? req.query.isPaid === 'true' : undefined;
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
 
-    const bets = await this.getBetsByPartnerIdUseCase.execute({
+    const result = await this.getBetsByPartnerIdUseCase.execute({
       partnerId,
       gameType,
+      search,
+      isPaid,
+      page,
+      limit,
     });
 
-    res.json(bets);
+    res.json(result);
   };
 
   exportPartnerBets = async (
@@ -73,22 +85,21 @@ export class BetsController {
       return;
     }
 
-    const megaSigla = req.user.megaSigla || '';
-    const quinaSigla = req.user.quinaSigla || '';
+    const megaSiglas = await this.partnerSiglaRepository.findByPartnerIdAndGameType(
+      partnerId,
+      'Mega'
+    );
+    const quinaSiglas = await this.partnerSiglaRepository.findByPartnerIdAndGameType(
+      partnerId,
+      'Quina'
+    );
 
-    if (!megaSigla || !quinaSigla) {
-      res.status(400).json({
-        message: 'Siglas do sócio não encontradas no token.',
-      });
-      return;
-    }
+    const megaSigla = megaSiglas.length > 0 ? megaSiglas[0].sigla : '';
+    const quinaSigla = quinaSiglas.length > 0 ? quinaSiglas[0].sigla : '';
 
     const gameType = req.query.gameType as string | undefined;
 
-    const bets = await this.getBetsByPartnerIdUseCase.execute({
-      partnerId,
-      gameType,
-    });
+    const bets = await this.betRepository.findByPartnerId(partnerId, gameType);
 
     if (bets.length === 0) {
       const gameTypeLabel = gameType || 'todos os tipos';

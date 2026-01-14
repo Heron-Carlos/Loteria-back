@@ -4,7 +4,8 @@ export interface User {
   passwordHash: string;
   role: 'Partner' | 'Admin';
   partnerId: string | null;
-  megaSigla: string;
-  quinaSigla: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  deletedAt?: Date | null;
 }
 

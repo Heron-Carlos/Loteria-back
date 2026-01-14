@@ -18,8 +18,6 @@ export const generateJwtToken = (user: User): string => {
     username: user.username,
     role: user.role,
     partnerId: user.partnerId,
-    megaSigla: user.megaSigla,
-    quinaSigla: user.quinaSigla,
   };
 
   const token = jwt.sign(payload, secret, {
