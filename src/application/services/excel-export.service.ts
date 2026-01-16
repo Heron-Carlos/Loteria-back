@@ -32,7 +32,6 @@ export const generateExcel = (
 
   const lastRow = bets.length + 1;
 
-  // Definir estilos reutilizáveis
   const defaultFont = { name: 'Calibri', size: 11, bold: true };
   const defaultAlignment = { horizontal: 'center' as const, vertical: 'middle' as const };
   const redFont = { ...defaultFont, color: { argb: 'FFFF0000' } };
@@ -43,7 +42,6 @@ export const generateExcel = (
     right: { style: 'thin' as const },
   };
 
-  // Cabeçalho
   const headerRow = worksheet.getRow(1);
   headerRow.getCell(1).value = '#';
   headerRow.getCell(2).value = 'Nome';
@@ -52,14 +50,12 @@ export const generateExcel = (
   }
   headerRow.getCell(14).value = 'Pagamento';
 
-  // Aplicar formatação no cabeçalho
   headerRow.font = defaultFont;
   headerRow.alignment = defaultAlignment;
   headerRow.eachCell((cell) => {
     cell.border = defaultBorder;
   });
 
-  // Preencher dados e aplicar formatação em um único loop
   for (let i = 0; i < bets.length; i++) {
     const bet = bets[i];
     const rowNum = i + 2;
