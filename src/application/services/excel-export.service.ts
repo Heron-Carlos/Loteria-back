@@ -1,6 +1,23 @@
 import ExcelJS from 'exceljs';
 import { Bet } from '../../domain/entities/Bet.entity';
 
+const formatSequentialNumber = (num: number): string => {
+  return num < 10 ? `0${num}` : `${num}`;
+};
+
+const formatPlayerNameForDisplay = (playerName: string): string => {
+  const trimmed = playerName.trim();
+  const match = trimmed.match(/^(.+?)\s+(\d+)$/);
+  
+  if (match) {
+    const baseName = match[1].trim();
+    const number = parseInt(match[2], 10);
+    return `${baseName} ${formatSequentialNumber(number)}`;
+  }
+  
+  return trimmed;
+};
+
 export const generateExcel = (
   bets: Bet[],
   megaSigla: string,
@@ -51,48 +68,48 @@ export const generateExcel = (
     // Valores
     row.getCell(1).value = i + 1;
     const currentSigla = bet.gameType === 'Mega' ? megaSigla : quinaSigla;
-    row.getCell(2).value = `${currentSigla} ${bet.playerName.toUpperCase()}`.trim();
+    const formattedPlayerName = formatPlayerNameForDisplay(bet.playerName);
+    row.getCell(2).value = `${currentSigla} ${formattedPlayerName.toUpperCase()}`.trim();
 
     for (let j = 0; j < 10; j++) {
-      row.getCell(j + 3).value = bet.selectedNumbers[j] || '';
+      const number = bet.selectedNumbers[j];
+      const cell = row.getCell(j + 3);
+      if (number) {
+        cell.value = number;
+        cell.numFmt = '00';
+      } else {
+        cell.value = '';
+      }
     }
 
     const validationFormula = `IF(B${rowNum}="","",IF(OR(C${rowNum}<1,D${rowNum}<=C${rowNum},E${rowNum}<=D${rowNum},F${rowNum}<=E${rowNum},G${rowNum}<=F${rowNum},H${rowNum}<=G${rowNum},I${rowNum}<=H${rowNum},J${rowNum}<=I${rowNum},K${rowNum}<=J${rowNum},L${rowNum}<=K${rowNum},L${rowNum}>80),"Corrigir Números","Aposta Ok"))`;
     row.getCell(13).value = { formula: validationFormula };
-
     row.getCell(14).value = bet.isPaid ? 'PAGO' : '';
-
-    // Formatação geral da linha (fonte, bordas, alinhamento)
     row.font = defaultFont;
     row.alignment = defaultAlignment;
     row.eachCell((cell) => {
       cell.border = defaultBorder;
     });
 
-    // Formatações específicas
-    row.getCell(1).font = redFont; // Coluna # em vermelho
-    row.getCell(2).alignment = { horizontal: 'left', vertical: 'middle' }; // Nome à esquerda
+    row.getCell(1).font = redFont;
+    row.getCell(2).alignment = { horizontal: 'left', vertical: 'middle' };
 
     if (bet.isPaid) {
-      row.getCell(14).font = redFont; // Pagamento em vermelho se pago
+      row.getCell(14).font = redFont;
     }
   }
 
-  // Ajustar largura das colunas (otimizado)
   const columnWidths: number[] = [];
   for (let col = 1; col <= 14; col++) {
     let maxLength = 0;
     const column = worksheet.getColumn(col);
     
-    // Verificar cabeçalho
     const headerCell = worksheet.getCell(1, col);
     const headerValue = headerCell.value?.toString() || '';
     if (headerValue.length > maxLength) {
       maxLength = headerValue.length;
     }
 
-    // Verificar apenas algumas células amostra para performance (ou todas se necessário)
-    // Para milhares de linhas, limitamos a amostragem
     const sampleSize = Math.min(bets.length, 100);
     const step = Math.max(1, Math.floor(bets.length / sampleSize));
 
@@ -110,8 +127,6 @@ export const generateExcel = (
     }
   }
 
-  // Formatação condicional na coluna M (13) - Validação
-  // Aplicada uma vez no range completo (eficiente)
   const validationRange = `M2:M${lastRow}`;
   worksheet.addConditionalFormatting({
     ref: validationRange,
@@ -125,7 +140,7 @@ export const generateExcel = (
           fill: {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: 'FF70AD47' }, // Verde (#70AD47)
+            fgColor: { argb: 'FF70AD47' },
           },
         },
       },
@@ -138,7 +153,7 @@ export const generateExcel = (
           fill: {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: 'FFFFC7CE' }, // Vermelho claro (LightPink)
+            fgColor: { argb: 'FFFFC7CE' },
           },
         },
       },

@@ -29,6 +29,7 @@ const betsController = new BetsController(
 );
 
 router.post('/', betsController.createBet);
+router.get('/public/:partnerId', betsController.getPublicPartnerBets);
 router.get(
   '/partner',
   authenticate,

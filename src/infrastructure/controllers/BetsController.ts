@@ -69,6 +69,27 @@ export class BetsController {
     res.json(result);
   };
 
+  getPublicPartnerBets = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    const partnerId = req.params.partnerId;
+
+    if (!partnerId) {
+      res.status(400).json({ message: 'Partner ID é obrigatório.' });
+      return;
+    }
+
+    const gameType = req.query.gameType as string | undefined;
+
+    const result = await this.getBetsByPartnerIdUseCase.execute({
+      partnerId,
+      gameType,
+    });
+
+    res.json(result);
+  };
+
   exportPartnerBets = async (
     req: AuthenticatedRequest,
     res: Response
