@@ -119,21 +119,40 @@ export class BetsController {
     const quinaSigla = quinaSiglas.length > 0 ? quinaSiglas[0].sigla : '';
 
     const gameType = req.query.gameType as string | undefined;
+    const isPaidQuery = req.query.isPaid as string | undefined;
+    const isPaid = isPaidQuery !== undefined ? isPaidQuery === 'true' : undefined;
 
-    const bets = await this.betRepository.findByPartnerId(partnerId, gameType);
+    // Usa o método paginado mas com limit muito alto para pegar todas as apostas
+    const result = await this.betRepository.findByPartnerIdPaginated({
+      partnerId,
+      gameType,
+      isPaid,
+      page: 1,
+      limit: 100000, // Limite alto para exportação
+    });
+
+    const bets = result.bets;
 
     if (bets.length === 0) {
       const gameTypeLabel = gameType || 'todos os tipos';
+      const statusLabel = isPaid !== undefined ? (isPaid ? 'pagas' : 'pendentes') : '';
       res.status(404).json({
-        message: `Nenhuma aposta de ${gameTypeLabel} encontrada para exportar.`,
+        message: `Nenhuma aposta ${statusLabel} de ${gameTypeLabel} encontrada para exportar.`,
       });
       return;
     }
 
     const buffer = await generateExcel(bets, megaSigla, quinaSigla);
 
-    const gameTypeLabel = gameType || 'todas';
-    const filename = `apostas_${gameTypeLabel}_${req.user.username || 'socio'}.xlsx`;
+    // Gera nome do arquivo baseado nos filtros
+    let filename = 'apostas';
+    if (gameType) {
+      filename += `_${gameType.toLowerCase()}`;
+    }
+    if (isPaid !== undefined) {
+      filename += isPaid ? '_pagas' : '_pendentes';
+    }
+    filename += `_${req.user.username || 'socio'}.xlsx`;
 
     res.setHeader(
       'Content-Type',
@@ -141,6 +160,26 @@ export class BetsController {
     );
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(buffer);
+  };
+
+  getPartnerStats = async (
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Usuário não autenticado.' });
+      return;
+    }
+
+    const partnerId = req.user.partnerId;
+
+    if (!partnerId) {
+      res.status(403).json({ message: 'Sócio não identificado.' });
+      return;
+    }
+
+    const stats = await this.betRepository.getStatsByPartnerId(partnerId);
+    res.json(stats);
   };
 
   updateBetPaidStatus = async (

@@ -14,11 +14,20 @@ export type PaginatedBetsResult = {
   total: number;
 };
 
+export type BetStats = {
+  total: number;
+  paid: number;
+  pending: number;
+  mega: number;
+  quina: number;
+};
+
 export interface IBetRepository {
   create(bet: Bet): Promise<Bet>;
   findById(id: string): Promise<Bet | null>;
   findByPartnerId(partnerId: string, gameType?: string): Promise<Bet[]>;
   findByPartnerIdPaginated(params: FindByPartnerIdParams): Promise<PaginatedBetsResult>;
+  getStatsByPartnerId(partnerId: string): Promise<BetStats>;
   update(id: string, updates: Partial<Bet>): Promise<Bet | null>;
   delete(id: string): Promise<boolean>;
 }

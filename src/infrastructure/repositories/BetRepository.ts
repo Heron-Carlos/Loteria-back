@@ -1,4 +1,4 @@
-import { IBetRepository, FindByPartnerIdParams, PaginatedBetsResult } from '../../domain/interfaces/IBetRepository.interface';
+import { IBetRepository, FindByPartnerIdParams, PaginatedBetsResult, BetStats } from '../../domain/interfaces/IBetRepository.interface';
 import { Bet } from '../../domain/entities/Bet.entity';
 import { getDatabaseConnection } from '../database/connection';
 
@@ -176,6 +176,32 @@ export class BetRepository implements IBetRepository {
     const result = await connection.query(query, [id]);
 
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async getStatsByPartnerId(partnerId: string): Promise<BetStats> {
+    const connection = getDatabaseConnection();
+
+    const query = `
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE is_paid = true) as paid,
+        COUNT(*) FILTER (WHERE is_paid = false) as pending,
+        COUNT(*) FILTER (WHERE game_type = 'Mega') as mega,
+        COUNT(*) FILTER (WHERE game_type = 'Quina') as quina
+      FROM bets
+      WHERE partner_id = $1 AND deleted_at IS NULL
+    `;
+
+    const result = await connection.query(query, [partnerId]);
+    const row = result.rows[0];
+
+    return {
+      total: parseInt(row.total, 10),
+      paid: parseInt(row.paid, 10),
+      pending: parseInt(row.pending, 10),
+      mega: parseInt(row.mega, 10),
+      quina: parseInt(row.quina, 10),
+    };
   }
 
   private mapRowToBet(row: any): Bet {

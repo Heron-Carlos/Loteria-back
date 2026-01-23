@@ -36,6 +36,12 @@ router.get(
   authorize('Partner', 'Admin'),
   betsController.getPartnerBets
 );
+router.get(
+  '/partner/stats',
+  authenticate,
+  authorize('Partner', 'Admin'),
+  betsController.getPartnerStats
+);
 router.post(
   '/partner/export',
   authenticate,
