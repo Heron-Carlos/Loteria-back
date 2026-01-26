@@ -7,6 +7,7 @@ import { PartnerSiglaRepository } from '../repositories/PartnerSiglaRepository';
 import { AuthenticateUseCase } from '../../application/use-cases/auth/Authenticate.use-case';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUser.use-case';
 import { GetAllPartnersUseCase } from '../../application/use-cases/auth/GetAllPartners.use-case';
+import { GetPartnerByUsernameUseCase } from '../../application/use-cases/auth/GetPartnerByUsername.use-case';
 
 const router: ExpressRouter = Router();
 
@@ -21,16 +22,19 @@ const registerUserUseCase = new RegisterUserUseCase(
   partnerSiglaRepository
 );
 const getAllPartnersUseCase = new GetAllPartnersUseCase(userRepository, partnerSiglaRepository);
+const getPartnerByUsernameUseCase = new GetPartnerByUsernameUseCase(userRepository, partnerSiglaRepository);
 
 const authController = new AuthController(
   authenticateUseCase,
   registerUserUseCase,
-  getAllPartnersUseCase
+  getAllPartnersUseCase,
+  getPartnerByUsernameUseCase
 );
 
 router.post('/login', authController.login);
 router.post('/register', authController.register);
 router.get('/partners', authController.getAllPartners);
+router.get('/partners/:username', authController.getPartnerByUsername);
 
 export { router as authRouter };
 

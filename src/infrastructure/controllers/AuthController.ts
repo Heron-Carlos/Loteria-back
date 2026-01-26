@@ -2,13 +2,15 @@ import { Request, Response } from 'express';
 import { AuthenticateUseCase } from '../../application/use-cases/auth/Authenticate.use-case';
 import { RegisterUserUseCase } from '../../application/use-cases/auth/RegisterUser.use-case';
 import { GetAllPartnersUseCase } from '../../application/use-cases/auth/GetAllPartners.use-case';
+import { GetPartnerByUsernameUseCase } from '../../application/use-cases/auth/GetPartnerByUsername.use-case';
 import { loginSchema, registerSchema } from '../../application/validators/auth.validator';
 
 export class AuthController {
   constructor(
     private readonly authenticateUseCase: AuthenticateUseCase,
     private readonly registerUserUseCase: RegisterUserUseCase,
-    private readonly getAllPartnersUseCase: GetAllPartnersUseCase
+    private readonly getAllPartnersUseCase: GetAllPartnersUseCase,
+    private readonly getPartnerByUsernameUseCase: GetPartnerByUsernameUseCase
   ) {}
 
   login = async (req: Request, res: Response): Promise<void> => {
@@ -85,6 +87,45 @@ export class AuthController {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       res.status(500).json({
         message: 'Ocorreu um erro ao buscar os sócios.',
+        error: errorMessage,
+      });
+    }
+  };
+
+  getPartnerByUsername = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const username = req.params.username;
+      const gameType = req.query.gameType as 'Mega' | 'Quina' | undefined;
+
+      if (!username) {
+        res.status(400).json({
+          message: 'Username é obrigatório.',
+        });
+        return;
+      }
+
+      if (!gameType || (gameType !== 'Mega' && gameType !== 'Quina')) {
+        res.status(400).json({
+          message: 'gameType é obrigatório e deve ser "Mega" ou "Quina".',
+        });
+        return;
+      }
+
+      const partner = await this.getPartnerByUsernameUseCase.execute(username, gameType);
+
+      if (!partner) {
+        res.status(404).json({
+          message: 'Sócio não encontrado ou não possui sigla para este jogo.',
+        });
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/json');
+      res.json(partner);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      res.status(500).json({
+        message: 'Ocorreu um erro ao buscar o sócio.',
         error: errorMessage,
       });
     }

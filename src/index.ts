@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { errorHandler } from './infrastructure/middleware/error-handler.middleware';
 import { betsRouter } from './infrastructure/routes/bets.routes';
 import { authRouter } from './infrastructure/routes/auth.routes';
+import { partnerPaymentInfoRouter } from './infrastructure/routes/partner-payment-info.routes';
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ const createApp = (): express.Application => {
 
   app.use('/api/auth', authRouter);
   app.use('/api/bets', betsRouter);
+  app.use('/api/partner-payment-info', partnerPaymentInfoRouter);
 
   app.use(errorHandler);
 
